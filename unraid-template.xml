@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>OilTank-Advisor</Name>
+  <Repository>ghcr.io/leonlaumeyer/oiltank-advisor:latest</Repository>
+  <Registry>https://github.com/leonlaumeyer/oiltank-advisor/packages</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/leonlaumeyer/oiltank-advisor/issues</Support>
+  <Project>https://github.com/leonlaumeyer/oiltank-advisor</Project>
+  <Overview>An dashboard that tracks your heating oil consumption, predicts future prices using Prophet and XGBoost, and advises you on the optimal time to refill your tank to maximize savings.</Overview>
+  <Category>Tools: Utilities: Data:</Category>
+  <WebUI>http://[IP]:[PORT:8501]</WebUI>
+  <TemplateURL/>
+  <Icon>https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/open-oil.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled></DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="WebUI Port" Target="8501" Default="8501" Mode="tcp" Description="Port for the Streamlit Dashboard" Type="Port" Display="always" Required="true" Mask="false">8501</Config>
+  <Config Name="InfluxDB URL" Target="INFLUXDB_URL" Default="http://localhost:8086" Mode="" Description="URL of your InfluxDB instance. Use the actual IP of the Unraid server, not localhost." Type="Variable" Display="always" Required="true" Mask="false">http://192.168.2.59:8086</Config>
+  <Config Name="InfluxDB Token" Target="INFLUXDB_TOKEN" Default="" Mode="" Description="Your InfluxDB API Token (e.g. vy1uRCvLHsNP9...)" Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="InfluxDB Organization" Target="INFLUXDB_ORG" Default="" Mode="" Description="Your InfluxDB Organization" Type="Variable" Display="always" Required="true" Mask="false">lara-home</Config>
+  <Config Name="InfluxDB Bucket (Timeseries)" Target="INFLUXDB_BUCKET" Default="" Mode="" Description="Bucket for ML metrics and weather." Type="Variable" Display="always" Required="true" Mask="false">Oil Tank Timeseries</Config>
+  <Config Name="InfluxDB Bucket (Raw)" Target="INFLUXDB_BUCKET_RAW" Default="" Mode="" Description="Bucket where your raw tank and homeassitant readings are written." Type="Variable" Display="always" Required="true" Mask="false">oil tank</Config>
+  <Config Name="Gemini API Key" Target="GEMINI_API_KEY" Default="" Mode="" Description="Your Gemini API Key for LLM Summaries" Type="Variable" Display="always" Required="false" Mask="true"></Config>
+</Container>

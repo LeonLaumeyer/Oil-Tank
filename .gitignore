@@ -1,0 +1,6 @@
+old/
+venv/
+.env
+structure.txt
+oil price
+__pycache__

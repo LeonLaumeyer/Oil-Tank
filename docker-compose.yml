@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  advisor-dashboard:
+    build: .
+    container_name: oiltank-advisor
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+    env_file:
+      - .env
