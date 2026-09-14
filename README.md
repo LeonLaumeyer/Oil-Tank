@@ -23,7 +23,7 @@ This project is designed to run continuously as a container, fetching new market
 ### Option 1: Docker / Unraid (Recommended)
 
 This project is fully containerized and a template is provided for easy deployment on Unraid.
-You can pull the latest image from: `ghcr.io/leonlaumeyer/oiltank-advisor:latest`
+You can pull the latest image from: `ghcr.io/leonlaumeyer/oil-tank:latest`
 
 **Required Environment Variables:**
 - `INFLUXDB_URL`: The URL to your InfluxDB instance (e.g., `http://192.168.X.X:8086`).

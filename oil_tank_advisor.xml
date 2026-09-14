@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>OilTank-Advisor</Name>
-  <Repository>ghcr.io/leonlaumeyer/oiltank-advisor:latest</Repository>
-  <Registry>https://github.com/leonlaumeyer/oiltank-advisor/packages</Registry>
+  <Repository>ghcr.io/leonlaumeyer/oil-tank:latest</Repository>
+  <Registry>https://github.com/LeonLaumeyer/Oil-Tank/pkgs/container/oil-tank</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>bash</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/leonlaumeyer/oiltank-advisor/issues</Support>
-  <Project>https://github.com/leonlaumeyer/oiltank-advisor</Project>
+  <Support>https://github.com/LeonLaumeyer/Oil-Tank/issues</Support>
+  <Project>https://github.com/LeonLaumeyer/Oil-Tank</Project>
   <Overview>An dashboard that tracks your heating oil consumption, predicts future prices using Prophet and XGBoost, and advises you on the optimal time to refill your tank to maximize savings.</Overview>
   <Category>Tools: Utilities: Data:</Category>
   <WebUI>http://[IP]:[PORT:8501]</WebUI>
