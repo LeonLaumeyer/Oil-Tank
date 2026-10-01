@@ -97,6 +97,66 @@ def fetch_local_oil_price_heizoel24(zip_code="85111", liters="2000"):
         print(f"Error fetching Heizoel24 price: {e}")
         return None
 
+def fetch_local_oil_price_steil(zip_code="85111", liters="2000"):
+    print(f"Fetching current local oil prices for {zip_code} from Steil Energie...")
+    try:
+        from selenium import webdriver
+        from selenium.webdriver.chrome.service import Service
+        from selenium.webdriver.chrome.options import Options
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        from webdriver_manager.chrome import ChromeDriverManager
+        import re
+        import time
+
+        options = Options()
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=options)
+
+        driver.get("https://www.steil-energie.de/avia-heizoel/heizoel-bestellen")
+
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "cs_shop_zip_code"))
+        )
+
+        zip_input = driver.find_element(By.ID, "cs_shop_zip_code")
+        zip_input.clear()
+        zip_input.send_keys(zip_code)
+
+        amount_input = driver.find_element(By.ID, "cs_shop_amount")
+        amount_input.clear()
+        amount_input.send_keys(liters)
+
+        submit_btn = driver.find_element(By.XPATH, "//input[@name='submit1']")
+        driver.execute_script("arguments[0].click();", submit_btn)
+
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Ihr Endpreis:')]|//*[contains(text(), 'AVIA Heizöl Standard')]"))
+        )
+
+        time.sleep(2)
+        page_source = driver.page_source
+        driver.quit()
+
+        match = re.search(r'AVIA Heizöl Standard.*?Ihr Endpreis:\s*([\d\.]+,\d\d)', page_source, re.DOTALL | re.IGNORECASE)
+        if match:
+            price_str = match.group(1).replace('.', '').replace(',', '.')
+            total_price = float(price_str)
+            price_per_100l = (total_price / float(liters)) * 100
+            return price_per_100l
+        else:
+            print("Could not find Steil price in response.")
+            return None
+
+    except Exception as e:
+        print(f"Error fetching Steil price: {e}")
+        return None
+
 def get_tank_level_at_time(client, timestamp_iso: str) -> float:
     query_api = client.query_api()
     query = f'''
@@ -144,6 +204,7 @@ def main():
     weather = fetch_weather_yesterday(target_date)
     finance = fetch_financials_yesterday(target_date)
     local_price = fetch_local_oil_price_heizoel24()
+    steil_price = fetch_local_oil_price_steil()
     
     start_of_yesterday = yesterday_dt.replace(hour=0, minute=0, second=0, microsecond=0)
     end_of_yesterday = yesterday_dt.replace(hour=23, minute=59, second=59, microsecond=0)
@@ -170,6 +231,8 @@ def main():
     print(f"Global Heating Oil: {finance['heating_oil_eur_per_100l']:.2f} €/100L")
     if local_price:
         print(f"Local Heizoel24 Price: {local_price:.2f} €/100L")
+    if steil_price:
+        print(f"Steil Energie Price: {steil_price:.2f} €/100L")
     print(f"Start Height: {start_height_m}m -> {start_liters:.1f} L")
     print(f"End Height: {end_height_m}m -> {end_liters:.1f} L")
     print(f"Consumed: {liters_consumed:.2f} Liters")
@@ -193,6 +256,7 @@ def main():
                 "heating_oil_eur_per_100l": float(finance['heating_oil_eur_per_100l']) if finance['heating_oil_eur_per_100l'] is not None else None,
                 "oil_market_mood_ovx": float(finance['oil_market_mood_ovx']) if finance['oil_market_mood_ovx'] is not None else None,
                 "local_heating_oil_eur_per_100l": float(local_price) if local_price is not None else None,
+                "steil_heating_oil_eur_per_100l": float(steil_price) if steil_price is not None else None,
                 "liters_consumed": float(liters_consumed),
                 "tank_level_liters": float(end_liters),
                 "tank_level_height_m": float(end_height_m)

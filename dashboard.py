@@ -78,6 +78,14 @@ if test_df_local is not None:
                 row=1, col=1
             )
 
+    if 'steil_heating_oil_eur_per_100l' in test_df_local.columns:
+        actual_steil = test_df_local['steil_heating_oil_eur_per_100l'].dropna()
+        if not actual_steil.empty:
+            fig_master.add_trace(
+                go.Scatter(x=actual_steil.index, y=actual_steil, mode='lines+markers', name='Past Price (Steil)', line=dict(width=2, color='orange')),
+                row=1, col=1
+            )
+
 local_forecast = data.get('local_champion_forecast')
 if local_forecast is not None and not local_forecast.empty:
     forecast_col = local_forecast.columns[0]
@@ -173,6 +181,11 @@ if cons_proj is not None and not cons_proj.empty:
             if not actual_local.empty:
                 y_max = max(y_max, actual_local.max())
                 y_min = min(y_min, actual_local.min())
+        if 'steil_heating_oil_eur_per_100l' in test_df_local.columns:
+            actual_steil = test_df_local['steil_heating_oil_eur_per_100l'].dropna()
+            if not actual_steil.empty:
+                y_max = max(y_max, actual_steil.max())
+                y_min = min(y_min, actual_steil.min())
     if local_forecast is not None and not local_forecast.empty:
         y_max = max(y_max, local_forecast[forecast_col].max())
         y_min = min(y_min, local_forecast[forecast_col].min())

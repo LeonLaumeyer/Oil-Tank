@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libgomp1 \
     curl \
+    chromium \
+    chromium-driver \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

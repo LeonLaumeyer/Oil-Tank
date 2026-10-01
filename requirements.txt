@@ -11,3 +11,5 @@ xmltodict==1.0.4
 google-genai==2.23.0
 streamlit==1.63.0
 plotly==7.0.0
+selenium
+webdriver-manager

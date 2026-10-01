@@ -24,7 +24,7 @@ def get_historical_data() -> pd.DataFrame:
         from(bucket: "{INFLUXDB_BUCKET}")
           |> range(start: -3y)
           |> filter(fn: (r) => r["_measurement"] == "daily_metrics")
-          |> filter(fn: (r) => r["_field"] == "heating_oil_eur_per_100l" or r["_field"] == "brent_crude_usd" or r["_field"] == "local_heating_oil_eur_per_100l" or r["_field"] == "oil_market_mood_ovx")
+          |> filter(fn: (r) => r["_field"] == "heating_oil_eur_per_100l" or r["_field"] == "brent_crude_usd" or r["_field"] == "local_heating_oil_eur_per_100l" or r["_field"] == "steil_heating_oil_eur_per_100l" or r["_field"] == "oil_market_mood_ovx")
           |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
     '''
     
@@ -43,6 +43,8 @@ def get_historical_data() -> pd.DataFrame:
     cols = ['_time', 'heating_oil_eur_per_100l', 'brent_crude_usd']
     if 'local_heating_oil_eur_per_100l' in df.columns:
         cols.append('local_heating_oil_eur_per_100l')
+    if 'steil_heating_oil_eur_per_100l' in df.columns:
+        cols.append('steil_heating_oil_eur_per_100l')
     if 'oil_market_mood_ovx' in df.columns:
         cols.append('oil_market_mood_ovx')
         
