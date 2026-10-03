@@ -153,12 +153,25 @@ def fetch_local_oil_price_steil(zip_code="85111", liters="2000"):
         )
 
         zip_input = driver.find_element(By.ID, "cs_shop_zip_code")
-        zip_input.clear()
-        zip_input.send_keys(zip_code)
-
         amount_input = driver.find_element(By.ID, "cs_shop_amount")
-        amount_input.clear()
-        amount_input.send_keys(liters)
+
+        set_value_js = ("arguments[0].value = arguments[1];"
+                        "arguments[0].dispatchEvent(new Event('input', {bubbles: true}));"
+                        "arguments[0].dispatchEvent(new Event('change', {bubbles: true}));")
+        for attempt in range(5):
+            for field, value in ((zip_input, zip_code), (amount_input, liters)):
+                if field.get_attribute("value") != value:
+                    field.clear()
+                    field.send_keys(value)
+                if field.get_attribute("value") != value:
+                    driver.execute_script(set_value_js, field, value)
+            time.sleep(1)
+            if zip_input.get_attribute("value") == zip_code and amount_input.get_attribute("value") == liters:
+                break
+        else:
+            print(f"Could not fill in the Steil form (zip code: {zip_input.get_attribute('value')}, amount: {amount_input.get_attribute('value')}).")
+            driver.quit()
+            return None
 
         submit_btn = driver.find_element(By.XPATH, "//input[@name='submit1']")
         driver.execute_script("arguments[0].click();", submit_btn)
@@ -175,7 +188,13 @@ def fetch_local_oil_price_steil(zip_code="85111", liters="2000"):
         if match:
             price_str = match.group(1).replace('.', '').replace(',', '.')
             total_price = float(price_str)
-            price_per_100l = (total_price / float(liters)) * 100
+            quoted_liters = float(liters)
+            amount_match = re.search(r'Abnahmemenge von\s*([\d\.]+)\s*L', page_source)
+            if amount_match:
+                quoted_liters = float(amount_match.group(1).replace('.', ''))
+                if quoted_liters != float(liters):
+                    print(f"Steil quoted {quoted_liters:.0f} L instead of {liters} L, using the quoted amount.")
+            price_per_100l = (total_price / quoted_liters) * 100
             return price_per_100l
         else:
             print("Could not find Steil price in response.")
