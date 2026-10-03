@@ -24,7 +24,7 @@ def get_historical_data() -> pd.DataFrame:
         from(bucket: "{INFLUXDB_BUCKET}")
           |> range(start: -3y)
           |> filter(fn: (r) => r["_measurement"] == "daily_metrics")
-          |> filter(fn: (r) => r["_field"] == "heating_oil_eur_per_100l" or r["_field"] == "brent_crude_usd" or r["_field"] == "local_heating_oil_eur_per_100l" or r["_field"] == "steil_heating_oil_eur_per_100l" or r["_field"] == "oil_market_mood_ovx")
+          |> filter(fn: (r) => r["_field"] == "heating_oil_eur_per_100l" or r["_field"] == "brent_crude_usd" or r["_field"] == "local_heating_oil_eur_per_100l" or r["_field"] == "steil_heating_oil_eur_per_100l" or r["_field"] == "oil_market_mood_ovx" or r["_field"] == "local_heating_oil_dealer" or r["_field"] == "local_heating_oil_order_link")
           |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
     '''
     
@@ -47,7 +47,11 @@ def get_historical_data() -> pd.DataFrame:
         cols.append('steil_heating_oil_eur_per_100l')
     if 'oil_market_mood_ovx' in df.columns:
         cols.append('oil_market_mood_ovx')
-        
+    if 'local_heating_oil_dealer' in df.columns:
+        cols.append('local_heating_oil_dealer')
+    if 'local_heating_oil_order_link' in df.columns:
+        cols.append('local_heating_oil_order_link')
+
     df = df[cols].copy()
     df.rename(columns={'_time': 'time'}, inplace=True)
     df['time'] = pd.to_datetime(df['time']).dt.tz_localize(None)

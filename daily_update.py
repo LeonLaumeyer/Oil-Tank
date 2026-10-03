@@ -97,6 +97,34 @@ def fetch_local_oil_price_heizoel24(zip_code="85111", liters="2000"):
         print(f"Error fetching Heizoel24 price: {e}")
         return None
 
+def fetch_cheapest_dealer_heizoel24(zip_code="85111", liters="2000"):
+    print(f"Fetching cheapest dealer for {zip_code} from Heizoel24...")
+    url = "https://www.heizoel24.de/api/kalkulation/berechnen"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+    payload = {
+        "ZipCode": zip_code,
+        "Amount": int(liters),
+        "Stations": 1,
+        "Product": {"Id": 1, "ClimateNeutral": False},
+        "Parameters": [{"Id": 24}, {"Id": 6}, {"Id": 5}, {"Id": 11}, {"Id": 9}],
+        "CountryId": 1,
+        "Cn": False,
+        "Ap": False,
+        "ProductGroupId": 1
+    }
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        response.raise_for_status()
+        offers = response.json()['Items']
+        cheapest = min(offers, key=lambda offer: offer['UnitPrice'])
+        order_link = f"https://www.heizoel24.de/heizoel/angebotsliste?zipCode={zip_code}&amount={liters}&stations=1&product=1&options=24,6,5,11,9&cn=0&ap=0"
+        return {"name": cheapest['Name'], "order_link": order_link}
+    except Exception as e:
+        print(f"Error fetching Heizoel24 dealer: {e}")
+        return None
+
 def fetch_local_oil_price_steil(zip_code="85111", liters="2000"):
     print(f"Fetching current local oil prices for {zip_code} from Steil Energie...")
     try:
@@ -204,6 +232,7 @@ def main():
     weather = fetch_weather_yesterday(target_date)
     finance = fetch_financials_yesterday(target_date)
     local_price = fetch_local_oil_price_heizoel24()
+    local_dealer = fetch_cheapest_dealer_heizoel24()
     steil_price = fetch_local_oil_price_steil()
     
     start_of_yesterday = yesterday_dt.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -231,6 +260,8 @@ def main():
     print(f"Global Heating Oil: {finance['heating_oil_eur_per_100l']:.2f} €/100L")
     if local_price:
         print(f"Local Heizoel24 Price: {local_price:.2f} €/100L")
+    if local_dealer:
+        print(f"Cheapest Heizoel24 Dealer: {local_dealer['name']}")
     if steil_price:
         print(f"Steil Energie Price: {steil_price:.2f} €/100L")
     print(f"Start Height: {start_height_m}m -> {start_liters:.1f} L")
@@ -256,6 +287,8 @@ def main():
                 "heating_oil_eur_per_100l": float(finance['heating_oil_eur_per_100l']) if finance['heating_oil_eur_per_100l'] is not None else None,
                 "oil_market_mood_ovx": float(finance['oil_market_mood_ovx']) if finance['oil_market_mood_ovx'] is not None else None,
                 "local_heating_oil_eur_per_100l": float(local_price) if local_price is not None else None,
+                "local_heating_oil_dealer": local_dealer['name'] if local_dealer is not None else None,
+                "local_heating_oil_order_link": local_dealer['order_link'] if local_dealer is not None else None,
                 "steil_heating_oil_eur_per_100l": float(steil_price) if steil_price is not None else None,
                 "liters_consumed": float(liters_consumed),
                 "tank_level_liters": float(end_liters),

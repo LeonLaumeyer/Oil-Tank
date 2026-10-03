@@ -21,6 +21,13 @@ CRITICAL = "#d03b3b"
 CACHE_TTL_SECONDS = 3600
 DEFAULT_ORDER_LITERS = 2000
 
+# Suppliers whose prices daily_update.py collects: (name, price column, order page, dealer column, order link column)
+# HeizOel24 is a portal, so the daily update also stores which dealer had the cheapest offer and the link to it
+SUPPLIERS = [
+    ("HeizOel24", 'local_heating_oil_eur_per_100l', "https://www.heizoel24.de/", 'local_heating_oil_dealer', 'local_heating_oil_order_link'),
+    ("Steil Energie", 'steil_heating_oil_eur_per_100l', "https://www.steil-energie.de/avia-heizoel/heizoel-bestellen", None, None),
+]
+
 st.markdown(
     """
     <style>
@@ -204,6 +211,34 @@ with k4:
         if best_date is not None:
             st.caption(f"Expected {fmt_date(best_date)}")
 
+# --- Where to order ---------------------------------------------------------
+
+offers = []
+if hist_df is not None:
+    latest = hist_df.iloc[-1]
+    for supplier, column, url, dealer_column, link_column in SUPPLIERS:
+        if column in hist_df.columns:
+            supplier_prices = hist_df[column].dropna()
+            if not supplier_prices.empty:
+                dealer = latest.get(dealer_column) if dealer_column else None
+                link = latest.get(link_column) if link_column else None
+                offers.append((supplier, supplier_prices.iloc[-1], link if pd.notna(link) else url, dealer if pd.notna(dealer) else None))
+offers.sort(key=lambda offer: offer[1])
+
+if offers:
+    st.subheader("Where to order")
+    st.caption(f"Latest prices the dashboard collected, as of {fmt_date(hist_df.index[-1])}, cheapest first. "
+               "The final price depends on the amount and your delivery address – check it on the supplier's page.")
+    for offer_col, (supplier, price, url, dealer) in zip(st.columns(len(offers)), offers):
+        with offer_col:
+            with st.container(border=True):
+                is_cheapest = len(offers) > 1 and price == offers[0][1]
+                st.markdown(f"**{dealer or supplier}**" + (f" via {supplier}" if dealer else "")
+                            + (" :green-badge[:material/check: Cheapest]" if is_cheapest else ""))
+                st.metric("Price per 100 L", fmt_price(price))
+                st.caption(f"About {price * order_liters / 100:,.0f} € for {fmt_liters(order_liters)}")
+                st.link_button(f"Order {'via' if dealer else 'at'} {supplier} ↗", url, width='stretch', type="primary" if is_cheapest else "secondary")
+
 # --- Price ------------------------------------------------------------------
 
 test_df = eval_data['test_df'] if eval_data else None
@@ -228,7 +263,7 @@ if test_df is not None:
         actual_local = test_df['local_heating_oil_eur_per_100l'].dropna()
         if not actual_local.empty:
             last_actual_x, last_actual_y = actual_local.index[-1], actual_local.iloc[-1]
-            fig_price.add_trace(go.Scatter(x=actual_local.index, y=actual_local, mode='lines', name='Price in your area',
+            fig_price.add_trace(go.Scatter(x=actual_local.index, y=actual_local, mode='lines', name='HeizOel24 (your area)',
                                            line=dict(width=2, color=BLUE), hovertemplate=price_hover))
 
     if 'steil_heating_oil_eur_per_100l' in test_df.columns:
