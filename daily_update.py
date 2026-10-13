@@ -137,13 +137,22 @@ def fetch_local_oil_price_steil(zip_code="85111", liters="2000"):
         from webdriver_manager.chrome import ChromeDriverManager
         import re
         import time
+        import shutil
 
         options = Options()
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
 
-        service = Service(ChromeDriverManager().install())
+        # In the container the driver installed next to Chromium always matches it. A downloaded
+        # driver is the newest release and stops working once it is ahead of the installed browser.
+        system_driver = shutil.which("chromedriver")
+        system_browser = shutil.which("chromium") or shutil.which("chromium-browser")
+        if system_driver and system_browser:
+            options.binary_location = system_browser
+            service = Service(system_driver)
+        else:
+            service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
 
         driver.get("https://www.steil-energie.de/avia-heizoel/heizoel-bestellen")
